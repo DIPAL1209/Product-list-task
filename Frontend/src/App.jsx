@@ -1,35 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [products, setProducts] = useState([]);
+    const [searchInput, setSearchInput] = useState(""); 
+  const [search, setSearch] = useState("");
+  const [selectCategory, setSelectCategory] = useState("");
+  const [sort, setSort] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/products", {
+          params:{
+            search: search,
+            category: selectCategory,
+            sort:sort
+          }
+        });
+
+        setProducts(res.data.Products);
+      } catch (error) {
+        console.log("error fetching products", error);
+        setProducts([]);
+      }
+    };
+
+    fetchProducts();
+  }, [search, selectCategory, sort]);
+
+
+ const handleSearch = () => {
+    setSearch(searchInput)
+  };
+
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div classname="main-page">
+      <div style={{ padding: "20px", backgroundColor: "lightpink"}}>
+        <h2>Product List</h2>
+
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}/>
+
+        <button onClick={handleSearch}>Search</button>
+
+        <select
+          value={selectCategory}
+          onChange={(e) => setSelectCategory(e.target.value)} >
+          <option value="">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Furniture">Furniture</option>
+        </select>
+
+        <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="">Sort by price</option>
+          <option value="asc">Low to High</option>
+          <option value="desc">High to Low</option>
+        </select>
+
+        {products.length === 0 ? (
+          <p>No productss are found</p>
+        ) : (
+          products.map((item) => (
+            <div key={item._id}>
+              <strong>{item.name}</strong>
+              <p>Category: {item.category}</p>
+              <p>Price: {item.price}</p>
+            </div>
+          ))
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
