@@ -24,7 +24,7 @@ exports.getProducts = async (req, res) => {
     if (search) {
       filter.name = {
         $regex: search,
-        $options: "i",
+        $options: "i", 
       };
     }
 
