@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const controller = require("../controller/product.controller");
+const validate = require("../middleware/joi.validation");
+const {createProductSchema } = require("../validation/product.validate")
 
-router.post("/", controller.createProduct);
+router.post("/",validate(createProductSchema), controller.createProduct);
 
 router.get("/", controller.getProducts);
 
