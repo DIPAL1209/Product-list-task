@@ -30,7 +30,7 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    const { search, category, sort, sortBy } = req.query;
+    const { search, category, sort, sortBy} = req.query;
 
     let filter = {};
 
@@ -54,10 +54,17 @@ exports.getProducts = async (req, res) => {
         option[sortBy] = -1;
       }
 
-    const Products = await Product.find(filter).sort(option);
+ const page = parseInt(req.query.page) || 1;
+ const limit = parseInt(req.query.limit) || 5;
+ const skip = (page -1) * limit;
+
+ const  totalProducts = await Product.countDocuments(filter);
+ const totalPage = Math.ceil(totalProducts/limit)
+ 
+    const Products = await Product.find(filter).sort(option).skip(skip).limit(Number(limit));
     res
       .status(200)
-      .json({ message: "products are fetched succesfullyy", Products });
+      .json({ message: "products are fetched succesfullyy", Products, totalProducts,totalPage });
   } catch (error) {
     res.status(500).json({ message: "database eeror" });
   }

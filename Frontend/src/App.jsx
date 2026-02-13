@@ -14,7 +14,9 @@ import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
+import TablePagination from "@mui/material/TablePagination";
 
+const PRODUCT_URL = `${import.meta.env.VITE_API_BASE_URL}products`;
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -27,6 +29,10 @@ function App() {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalProducts, setTotalProducts] = useState(0);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -35,18 +41,20 @@ function App() {
         const params = {
           search: search,
           category: selectCategory,
+          page: page + 1,
+          limit: rowsPerPage,
         };
 
         if (orderBy) {
           params.sortBy = orderBy;
           params.sort = order;
         }
-
-        const res = await axios.get("http://localhost:5000/api/products", {
+        const res = await axios.get(`${PRODUCT_URL}/get-all`, {
           params: params,
         });
 
         setProducts(res.data.Products);
+        setTotalProducts(res.data.totalProducts);
       } catch (error) {
         console.log("error fetching products", error);
         setProducts([]);
@@ -54,7 +62,7 @@ function App() {
     };
 
     fetchProducts();
-  }, [search, selectCategory, orderBy, order]);
+  }, [search, selectCategory, orderBy, order, page, rowsPerPage]);
 
   const handlesort = (columnName) => {
     if (orderBy === columnName) {
@@ -63,6 +71,16 @@ function App() {
       setOrderBy(columnName);
       setOrder("asc");
     }
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const addProduct = async () => {
@@ -72,7 +90,7 @@ function App() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/products", {
+      await axios.post(`${PRODUCT_URL}/create-product`, {
         name,
         category,
         price,
@@ -132,7 +150,10 @@ function App() {
           <TextField
             label="Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setPage(0);
+            }}
             sx={{ minWidth: 350 }}
           />
 
@@ -142,7 +163,10 @@ function App() {
               labelId="add-category-label"
               value={category}
               label="Category"
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(0);
+              }}
             >
               <MenuItem value="Electronics">Electronics</MenuItem>
               <MenuItem value="Fashion">Fashion</MenuItem>
@@ -158,7 +182,11 @@ function App() {
             sx={{ minWidth: 350 }}
           />
 
-          <Button variant="contained" onClick={addProduct} sx={{ minWidth: 300 }}>
+          <Button
+            variant="contained"
+            onClick={addProduct}
+            sx={{ minWidth: 300 }}
+          >
             Add Product
           </Button>
         </Box>
@@ -268,6 +296,16 @@ function App() {
               ))
             )}
           </TableBody>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={totalProducts}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+           
+          />
         </Table>
       </Paper>
     </Box>

@@ -5,8 +5,8 @@ const controller = require("../controller/product.controller");
 const validate = require("../middleware/joi.validation");
 const {createProductSchema } = require("../validation/product.validate")
 
-router.post("/",validate(createProductSchema), controller.createProduct);
+router.post("/create-product",validate(createProductSchema), controller.createProduct);
 
-router.get("/", controller.getProducts);
+router.get("/get-all", controller.getProducts);
 
 module.exports = router;
