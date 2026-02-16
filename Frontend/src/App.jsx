@@ -15,8 +15,10 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import TablePagination from "@mui/material/TablePagination";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
-const PRODUCT_URL = `${import.meta.env.VITE_API_BASE_URL}products`;
+const PRODUCT_URL = `${import.meta.env.VITE_API_URL}products`;
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -32,6 +34,12 @@ function App() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalProducts, setTotalProducts] = useState(0);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -83,9 +91,17 @@ function App() {
     setPage(0);
   };
 
+  const handleClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const addProduct = async () => {
     if (!name.trim() || !category.trim() || !price) {
-      alert("All fields are required");
+      setSnackbar({
+        open: true,
+        message: "All fields are required",
+        severity: "error",
+      });
       return;
     }
 
@@ -96,32 +112,57 @@ function App() {
         price,
       });
 
-      alert("Product added successfully");
+      setSnackbar({
+        open: true,
+        message: "Product added successfully",
+        severity: "success",
+      });
 
       setName("");
       setCategory("");
       setPrice("");
     } catch (error) {
-      alert(error.response?.data?.message);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || "Failed to add product",
+        severity: "error",
+      });
     }
   };
 
   return (
-    <Box sx={{ fontFamily: "sans-serif" }}>
-      <Paper elevation={0} sx={{ p: 3, maxWidth: 1500 }}>
+    <Box
+      sx={{
+        fontFamily: "sans-serif",
+        backgroundColor: "#f4f6f8",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+      }}
+    >
+      <Paper elevation={0} sx={{ p: 7, width: "100%", maxWidth: 1400 }}>
         <h2
           style={{
-            color: "#582e95",
-            marginBottom: "24px",
+            color: "#2c3e50",
+            marginBottom: "25px",
             textAlign: "center",
-            fontSize: "32px",
+            fontSize: "35px",
             fontFamily: "sans-serif",
           }}
         >
           Product List
         </h2>
 
-        <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 4,
+            mb: 3,
+            p: 2,
+            backgroundColor: "#fafafa",
+            borderRadius: 2,
+          }}
+        >
           <TextField
             label="Search Product"
             variant="outlined"
@@ -130,7 +171,7 @@ function App() {
             sx={{ flex: 1 }}
           />
 
-          <FormControl sx={{ minWidth: 300 }}>
+          <FormControl sx={{ minWidth: 250 }}>
             <InputLabel id="category-label">Categories</InputLabel>
             <Select
               labelId="category-label"
@@ -146,7 +187,17 @@ function App() {
           </FormControl>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 4.5, mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 3,
+            mb: 3,
+            p: 2,
+            backgroundColor: "#fafafa",
+            borderRadius: 2,
+            alignItems: "center",
+          }}
+        >
           <TextField
             label="Name"
             value={name}
@@ -154,10 +205,10 @@ function App() {
               setName(e.target.value);
               setPage(0);
             }}
-            sx={{ minWidth: 350 }}
+            sx={{ flex: 1 }}
           />
 
-          <FormControl sx={{ minWidth: 350 }}>
+          <FormControl sx={{ flex: 1 }}>
             <InputLabel id="add-category-label">Category</InputLabel>
             <Select
               labelId="add-category-label"
@@ -179,123 +230,138 @@ function App() {
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            sx={{ minWidth: 350 }}
+            sx={{ flex: 1 }}
           />
 
           <Button
             variant="contained"
             onClick={addProduct}
-            sx={{ minWidth: 300 }}
+            sx={{
+              height: "56px",
+              px: 4,
+              fontWeight: "600",
+              borderRadius: 2,
+              backgroundColor: "#1976d2",
+              "&:hover": {
+                backgroundColor: "#125ea8",
+              },
+            }}
           >
             Add Product
           </Button>
         </Box>
 
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#d4eafb" }}>
-              <TableCell>
-                <TableSortLabel
-                  active={orderBy === "name"}
-                  direction={orderBy === "name" ? order : "asc"}
-                  onClick={() => handlesort("name")}
-                >
-                  <strong> Name </strong>
-                </TableSortLabel>
-
-                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                  <Select
-                    value={orderBy === "name" ? order : ""}
-                    onChange={(e) => {
-                      setOrderBy("name");
-                      setOrder(e.target.value);
-                    }}
-                    displayEmpty
+        <Paper elevation={5} sx={{ borderRadius: 2, overflow: "hidden" }}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#1976d2f7" }}>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "name"}
+                    direction={orderBy === "name" ? order : "asc"}
+                    onClick={() => handlesort("name")}
+                    sx={{ color: "white" }}
                   >
-                    <MenuItem value="">Null</MenuItem>
-                    <MenuItem value="asc">ASC</MenuItem>
-                    <MenuItem value="desc">DESC</MenuItem>
-                  </Select>
-                </FormControl>
-              </TableCell>
+                    <strong> Name </strong>
+                  </TableSortLabel>
 
-              <TableCell>
-                <TableSortLabel
-                  active={orderBy === "category"}
-                  direction={orderBy === "category" ? order : "asc"}
-                  onClick={() => handlesort("category")}
-                >
-                  <strong>Category</strong>
-                </TableSortLabel>
+                  <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                    <Select
+                      value={orderBy === "name" ? order : ""}
+                      onChange={(e) => {
+                        setOrderBy("name");
+                        setOrder(e.target.value);
+                      }}
+                      displayEmpty
+                    >
+                      <MenuItem value="">Null</MenuItem>
+                      <MenuItem value="asc">ASC</MenuItem>
+                      <MenuItem value="desc">DESC</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
 
-                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                  <Select
-                    value={orderBy === "category" ? order : ""}
-                    onChange={(e) => {
-                      setOrderBy("category");
-                      setOrder(e.target.value);
-                    }}
-                    displayEmpty
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "category"}
+                    direction={orderBy === "category" ? order : "asc"}
+                    onClick={() => handlesort("category")}
+                    sx={{ color: "white" }}
                   >
-                    <MenuItem value="">Null</MenuItem>
-                    <MenuItem value="asc">ASC</MenuItem>
-                    <MenuItem value="desc">DESC</MenuItem>
-                  </Select>
-                </FormControl>
-              </TableCell>
+                    <strong>Category</strong>
+                  </TableSortLabel>
 
-              <TableCell>
-                <TableSortLabel
-                  active={orderBy === "price"}
-                  direction={orderBy === "price" ? order : "asc"}
-                  onClick={() => handlesort("price")}
-                >
-                  <strong>Price</strong>
-                </TableSortLabel>
+                  <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                    <Select
+                      value={orderBy === "category" ? order : ""}
+                      onChange={(e) => {
+                        setOrderBy("category");
+                        setOrder(e.target.value);
+                      }}
+                      displayEmpty
+                    >
+                      <MenuItem value="">Null</MenuItem>
+                      <MenuItem value="asc">ASC</MenuItem>
+                      <MenuItem value="desc">DESC</MenuItem>
+                    </Select>
+                  </FormControl>
+                </TableCell>
 
-                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                  <Select
-                    value={orderBy === "price" ? order : ""}
-                    onChange={(e) => {
-                      setOrderBy("price");
-                      setOrder(e.target.value);
-                    }}
-                    displayEmpty
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === "price"}
+                    direction={orderBy === "price" ? order : "asc"}
+                    onClick={() => handlesort("price")}
+                    sx={{ color: "white" }}
                   >
-                    <MenuItem value="">Null</MenuItem>
-                    <MenuItem value="asc">Low To High</MenuItem>
-                    <MenuItem value="desc">High To Low</MenuItem>
-                  </Select>
-                </FormControl>
-              </TableCell>
-            </TableRow>
-          </TableHead>
+                    <strong>Price</strong>
+                  </TableSortLabel>
 
-          <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
-                  No products are found
+                  <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                    <Select
+                      value={orderBy === "price" ? order : ""}
+                      onChange={(e) => {
+                        setOrderBy("price");
+                        setOrder(e.target.value);
+                      }}
+                      displayEmpty
+                    >
+                      <MenuItem value="">Null</MenuItem>
+                      <MenuItem value="asc">Low To High</MenuItem>
+                      <MenuItem value="desc">High To Low</MenuItem>
+                    </Select>
+                  </FormControl>
                 </TableCell>
               </TableRow>
-            ) : (
-              products.map((item) => (
-                <TableRow
-                  key={item._id}
-                  sx={{
-                    backgroundColor: "#ffff",
-                    "&:hover": { backgroundColor: "#b4c8c9a8" },
-                  }}
-                >
-                  <TableCell align="left">
-                    <strong>{item.name}</strong>
+            </TableHead>
+
+            <TableBody>
+              {products.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
+                    No products are found
                   </TableCell>
-                  <TableCell align="left">{item.category}</TableCell>
-                  <TableCell align="left">{item.price}</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
+              ) : (
+                products.map((item) => (
+                  <TableRow
+                    key={item._id}
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#f1f7ff",
+                      },
+                    }}
+                  >
+                    <TableCell>
+                      <strong>{item.name}</strong>
+                    </TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell>{item.price}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
@@ -304,10 +370,25 @@ function App() {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-           
           />
-        </Table>
+        </Paper>
       </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
